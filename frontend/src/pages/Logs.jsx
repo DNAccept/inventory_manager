@@ -29,9 +29,9 @@ const Logs = () => {
                             </thead>
                             <tbody>
                                 {logs.map(log => (
-                                    <tr key={log.id}>
-                                        <td>{log.timestamp}</td>
-                                        <td>{log.user}</td>
+                                    <tr key={log._id || log.id}>
+                                        <td>{new Date(log.createdAt || log.timestamp).toLocaleString()}</td>
+                                        <td>{log.username || log.user}</td>
                                         <td>
                                             <span className={`badge ${log.action === 'ADD' ? 'badge-ok' :
                                                 log.action === 'DELETE' ? 'badge-low' : 'badge-ok'

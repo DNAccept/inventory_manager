@@ -20,10 +20,12 @@ const InventoryForm = () => {
 
     useEffect(() => {
         if (isEditMode) {
-            const itemToEdit = items.find(item => item.id === parseInt(id));
+            // Compare IDs as strings to handle both numeric and MongoDB ObjectID strings
+            const itemToEdit = items.find(item => String(item.id) === id);
             if (itemToEdit) {
                 setFormData(itemToEdit);
             } else {
+                console.warn(`Item with id ${id} not found in items list`, items);
                 navigate('/dashboard');
             }
         }
@@ -52,7 +54,7 @@ const InventoryForm = () => {
         };
 
         if (isEditMode) {
-            updateItem(parseInt(id), itemData, reason);
+            updateItem(id, itemData, reason);
         } else {
             addItem(itemData, reason);
         }
@@ -61,73 +63,75 @@ const InventoryForm = () => {
     };
 
     return (
-        <div className="form-layout">
+        <div className="dashboard-layout">
             <Navbar />
-            <div className="form-container">
-                <div className="form-card">
-                    <h1>{isEditMode ? 'Edit Item' : 'Add New Item'}</h1>
-                    <form onSubmit={handleFormSubmit}>
-                        <div className="form-group">
-                            <label>Product Name</label>
-                            <input
-                                type="text"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Category</label>
-                            <input
-                                type="text"
-                                name="category"
-                                value={formData.category}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-                        <div className="form-row">
+            <main className="dashboard-content">
+                <div className="form-container">
+                    <div className="form-card">
+                        <h1>{isEditMode ? 'Edit Item' : 'Add New Item'}</h1>
+                        <form onSubmit={handleFormSubmit}>
                             <div className="form-group">
-                                <label>Quantity</label>
+                                <label>Product Name</label>
                                 <input
-                                    type="number"
-                                    name="quantity"
-                                    value={formData.quantity}
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
                                     onChange={handleChange}
-                                    min="0"
                                     required
                                 />
                             </div>
                             <div className="form-group">
-                                <label>Price</label>
+                                <label>Category</label>
                                 <input
-                                    type="number"
-                                    name="price"
-                                    value={formData.price}
+                                    type="text"
+                                    name="category"
+                                    value={formData.category}
                                     onChange={handleChange}
-                                    min="0"
-                                    step="0.01"
                                     required
                                 />
                             </div>
-                        </div>
-                        <div className="form-group">
-                            <label>Description</label>
-                            <textarea
-                                name="description"
-                                value={formData.description}
-                                onChange={handleChange}
-                                rows="3"
-                            />
-                        </div>
-                        <div className="form-actions">
-                            <button type="button" onClick={() => navigate('/dashboard')} className="btn btn-secondary">Cancel</button>
-                            <button type="submit" className="btn btn-primary">{isEditMode ? 'Update Item' : 'Add Item'}</button>
-                        </div>
-                    </form>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Quantity</label>
+                                    <input
+                                        type="number"
+                                        name="quantity"
+                                        value={formData.quantity}
+                                        onChange={handleChange}
+                                        min="0"
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Price (GH₵)</label>
+                                    <input
+                                        type="number"
+                                        name="price"
+                                        value={formData.price}
+                                        onChange={handleChange}
+                                        min="0"
+                                        step="0.01"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label>Description</label>
+                                <textarea
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleChange}
+                                    rows="3"
+                                />
+                            </div>
+                            <div className="form-actions">
+                                <button type="button" onClick={() => navigate('/dashboard')} className="btn btn-secondary">Cancel</button>
+                                <button type="submit" className="btn btn-primary">{isEditMode ? 'Update Item' : 'Add Item'}</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            </div>
+            </main>
 
             <ReasonModal
                 isOpen={showReasonModal}

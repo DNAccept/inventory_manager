@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useInventory } from '../context/InventoryContext';
 
 
@@ -20,8 +20,8 @@ const Navbar = () => {
                 <Link to="/dashboard">IMS</Link>
             </div>
             <div className="navbar-menu">
-                <Link to="/dashboard" className="navbar-item">Dashboard</Link>
-                <Link to="/logs" className="navbar-item">Logs</Link>
+                <NavLink to="/dashboard" className="navbar-item">Dashboard</NavLink>
+                <NavLink to="/logs" className="navbar-item">Logs</NavLink>
                 <div className="navbar-end">
                     <span className="navbar-user">
                         Welcome, <Link to="/profile" style={{ color: 'inherit', textDecoration: 'underline' }}>{user.username}</Link>
