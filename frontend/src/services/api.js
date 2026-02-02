@@ -15,6 +15,22 @@ const getHeaders = () => {
 
 export const api = {
     // Auth
+    checkInit: async () => {
+        const response = await fetch(`${API_URL}/auth/init`, {
+            headers: { 'Content-Type': 'application/json' },
+        });
+        return handleResponse(response);
+    },
+
+    registerInitial: async (data) => {
+        const response = await fetch(`${API_URL}/auth/init`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+        return handleResponse(response);
+    },
+
     login: async (credentials) => {
         const response = await fetch(`${API_URL}/auth/login`, {
             method: 'POST',

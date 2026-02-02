@@ -41,7 +41,7 @@ const seedIfEmpty = async () => {
     console.error('Auto-seed failed:', error);
   }
 };
-seedIfEmpty();
+// seedIfEmpty();
 
 // Middleware
 app.use(cors({

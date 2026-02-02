@@ -12,6 +12,84 @@ const generateToken = (id) => {
 // @desc    Login user
 // @route   POST /api/auth/login
 // @access  Public
+export const checkInit = async (req, res) => {
+  try {
+    const count = await User.countDocuments();
+    res.json({
+      success: true,
+      initialized: count > 0
+    });
+  } catch (error) {
+    console.error('Check init error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error checking initialization status'
+    });
+  }
+};
+
+// @desc    Register first admin user
+// @route   POST /api/auth/register-initial
+// @access  Public (Only if no users exist)
+export const registerFirstUser = async (req, res) => {
+  try {
+    const count = await User.countDocuments();
+    if (count > 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'System already initialized. Admin account exists.'
+      });
+    }
+
+    const { username, password, fullName } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide username and password'
+      });
+    }
+
+    const user = await User.create({
+      username,
+      password,
+      fullName: fullName || 'System Administrator',
+      role: 'site_admin',
+      isFirstLogin: false
+    });
+
+    // Create log entry (manually since no user in req yet)
+    await Log.create({
+      action: 'SYSTEM_INIT',
+      reason: 'Initial admin account created',
+      details: `Initial admin user ${username} created`,
+      userId: user._id,
+      username: user.username
+    });
+
+    const token = generateToken(user._id);
+
+    res.status(201).json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        fullName: user.fullName,
+        role: user.role
+      }
+    });
+
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during registration'
+    });
+  }
+};
+
+// @desc    Login user
 export const login = async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -83,7 +161,7 @@ export const login = async (req, res) => {
 export const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
-    
+
     res.json({
       success: true,
       user
@@ -175,7 +253,7 @@ export const updateProfile = async (req, res) => {
       const admins = await User.find({ role: 'site_admin' });
       // In a real app, you'd send emails or in-app notifications here
       console.log(`Username changed: ${oldUsername} -> ${username}. Admins notified:`, admins.map(a => a.username));
-      
+
       // Create notification log
       await Log.create({
         action: 'USER_UPDATED',

@@ -9,6 +9,9 @@ const Profile = () => {
 
     const [username, setUsername] = useState('');
     const [fullName, setFullName] = useState('');
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
     useEffect(() => {
         if (user) {
@@ -17,9 +20,32 @@ const Profile = () => {
         }
     }, [user]);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        updateProfile({ username, fullName });
+
+        const updates = { username, fullName };
+
+        if (newPassword) {
+            if (newPassword !== confirmNewPassword) {
+                alert("New passwords do not match!");
+                return;
+            }
+            if (!currentPassword) {
+                alert("Current password is required to set a new password.");
+                return;
+            }
+            updates.currentPassword = currentPassword;
+            updates.newPassword = newPassword;
+        }
+
+        const success = await updateProfile(updates);
+        if (success) {
+            // Clear password fields on success
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmNewPassword('');
+            alert('Profile updated successfully!');
+        }
     };
 
     return (
@@ -60,6 +86,37 @@ const Profile = () => {
                                 onChange={(e) => setFullName(e.target.value)}
                                 placeholder="Enter full name"
                             />
+                        </div>
+
+                        <div style={{ borderTop: '1px solid #eee', margin: '20px 0', paddingTop: '20px' }}>
+                            <h4>Change Password</h4>
+                            <div className="form-group">
+                                <label>Current Password (required to change)</label>
+                                <input
+                                    type="password"
+                                    value={currentPassword}
+                                    onChange={(e) => setCurrentPassword(e.target.value)}
+                                    placeholder="Enter current password"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>New Password</label>
+                                <input
+                                    type="password"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    placeholder="Enter new password"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Confirm New Password</label>
+                                <input
+                                    type="password"
+                                    value={confirmNewPassword}
+                                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                                    placeholder="Confirm new password"
+                                />
+                            </div>
                         </div>
                         <div className="form-actions">
                             <button type="submit" className="btn btn-primary">Update Profile</button>
