@@ -1,89 +1,62 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useInventory } from '../context/InventoryContext';
 import { api } from '../services/api';
 
-const Login = () => {
+const Signup = () => {
+    const [fullName, setFullName] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-
-    // Registration state
-    const [isInitialized, setIsInitialized] = useState(true); // Default to true to prevent flash
-    const [loadingInit, setLoadingInit] = useState(true);
-    const [fullName, setFullName] = useState('');
-
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+
     const { login } = useInventory();
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const checkSystem = async () => {
-            try {
-                const data = await api.checkInit();
-                setIsInitialized(data.initialized);
-            } catch (err) {
-                console.error("Failed to check init status:", err);
-            } finally {
-                setLoadingInit(false);
-            }
-        };
-        checkSystem();
-    }, []);
-
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        const success = await login(username, password);
-        if (success) {
-            navigate('/dashboard');
-        } else {
-            setError('Invalid credentials');
-        }
-    };
-
     const handleRegister = async (e) => {
         e.preventDefault();
+        setError('');
+
+        if (password !== confirmPassword) {
+            setError('Passwords do not match');
+            return;
+        }
+
+        setLoading(true);
         try {
-            const data = await api.registerInitial({ username, password, fullName });
+            // Register user
+            const data = await api.register({ username, password, fullName });
+
             if (data.success) {
-                // Auto login after registration
-                const success = await login(username, password);
-                if (success) {
-                    navigate('/dashboard');
-                } else {
-                    // Fallback if auto-login fails for some reason
-                    setIsInitialized(true);
-                    setError('Account created. Please log in.');
-                }
+                // Navigate to login page with message
+                navigate('/login');
             }
         } catch (err) {
             setError(err.message || 'Registration failed');
+        } finally {
+            setLoading(false);
         }
     };
-
-    if (loadingInit) {
-        return <div className="login-container"><div className="login-card">Loading...</div></div>;
-    }
 
     return (
         <div className="login-container">
             <div className="login-card">
-                <h2>{isInitialized ? 'Welcome Back' : 'Setup Admin Account'}</h2>
-                <p>{isInitialized ? 'Sign in to manage inventory' : 'Create the first administrator account to get started'}</p>
+                <h2>Create Account</h2>
+                <p>Sign up to start managing inventory</p>
 
-                <form onSubmit={isInitialized ? handleLogin : handleRegister}>
-                    {!isInitialized && (
-                        <div className="form-group">
-                            <label>Full Name</label>
-                            <input
-                                type="text"
-                                value={fullName}
-                                onChange={(e) => setFullName(e.target.value)}
-                                placeholder="Enter full name"
-                                required
-                            />
-                        </div>
-                    )}
+                <form onSubmit={handleRegister}>
+                    <div className="form-group">
+                        <label>Full Name</label>
+                        <input
+                            type="text"
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                            placeholder="Enter full name"
+                            required
+                        />
+                    </div>
 
                     <div className="form-group">
                         <label>Username</label>
@@ -91,10 +64,11 @@ const Login = () => {
                             type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            placeholder="Enter username"
+                            placeholder="Choose a username"
                             required
                         />
                     </div>
+
                     <div className="form-group">
                         <label>Password</label>
                         <div style={{ position: 'relative' }}>
@@ -102,7 +76,7 @@ const Login = () => {
                                 type={showPassword ? "text" : "password"}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                placeholder="Enter password"
+                                placeholder="Create password"
                                 required
                             />
                             <button
@@ -138,18 +112,31 @@ const Login = () => {
                             </button>
                         </div>
                     </div>
+
+                    <div className="form-group">
+                        <label>Confirm Password</label>
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            placeholder="Confirm password"
+                            required
+                        />
+                    </div>
+
                     {error && <div className="error-message">{error}</div>}
-                    <button type="submit" className="btn btn-primary btn-block">
-                        {isInitialized ? 'Login' : 'Create Admin Account'}
+
+                    <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+                        {loading ? 'Creating Account...' : 'Sign Up'}
                     </button>
                 </form>
 
                 <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.9rem' }}>
-                    Don't have an account? <Link to="/signup" style={{ color: 'var(--primary-color)', fontWeight: '500', textDecoration: 'none' }}>Sign up</Link>
+                    Already have an account? <Link to="/login" style={{ color: 'var(--primary-color)', fontWeight: '500', textDecoration: 'none' }}>Log in</Link>
                 </div>
             </div>
         </div>
     );
 };
 
-export default Login;
+export default Signup;

@@ -51,7 +51,7 @@ const updateTrends = async () => {
 // @access  Private
 export const getItems = async (req, res) => {
   try {
-    const items = await Item.find().sort({ createdAt: -1 });
+    const items = await Item.find({ userId: req.user.id }).sort({ createdAt: -1 });
     const stats = await SystemStats.findOne();
     const trends = stats ? stats.trends : { items: 'neutral', quantity: 'neutral', value: 'neutral' };
 
@@ -126,7 +126,8 @@ export const createItem = async (req, res) => {
       quantity,
       price,
       description: description || '',
-      lowStockThreshold: lowStockThreshold || 10
+      lowStockThreshold: lowStockThreshold || 10,
+      userId: req.user.id
     });
 
     // Create log entry
@@ -187,6 +188,14 @@ export const updateItem = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: 'Item not found'
+      });
+    }
+
+    // Verify ownership
+    if (item.userId.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this item'
       });
     }
 
@@ -279,6 +288,14 @@ export const deleteItem = async (req, res) => {
       });
     }
 
+    // Verify ownership
+    if (item.userId.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete this item'
+      });
+    }
+
     // Store item data for logging
     const itemData = {
       name: item.name,
@@ -323,8 +340,8 @@ export const deleteItem = async (req, res) => {
 // @access  Private
 export const getStats = async (req, res) => {
   try {
-    const totalItems = await Item.countDocuments();
-    const items = await Item.find();
+    const totalItems = await Item.countDocuments({ userId: req.user.id });
+    const items = await Item.find({ userId: req.user.id });
 
     const lowStockItems = items.filter(item => item.quantity <= item.lowStockThreshold).length;
     const totalValue = items.reduce((sum, item) => sum + (item.quantity * item.price), 0);

@@ -39,6 +39,11 @@ const itemSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
   lastUpdated: {
     type: Date,
     default: Date.now
@@ -48,13 +53,13 @@ const itemSchema = new mongoose.Schema({
 });
 
 // Update lastUpdated on save
-itemSchema.pre('save', function(next) {
+itemSchema.pre('save', function (next) {
   this.lastUpdated = Date.now();
   next();
 });
 
 // Virtual for stock status
-itemSchema.virtual('stockStatus').get(function() {
+itemSchema.virtual('stockStatus').get(function () {
   return this.quantity <= this.lowStockThreshold ? 'low' : 'ok';
 });
 

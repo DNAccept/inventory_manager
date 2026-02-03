@@ -46,18 +46,7 @@ const seedIfEmpty = async () => {
 // Middleware
 // Middleware
 const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173').split(',');
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
-}));
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -69,6 +58,10 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
+// Swagger Documentation
+import swaggerUi from 'swagger-ui-express';
+import { specs } from './config/swagger.js';
+
 // Health check route
 app.get('/health', (req, res) => {
   res.json({
@@ -77,6 +70,9 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// Serve API Docs
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 // API Routes
 app.use('/api/auth', authRoutes);
